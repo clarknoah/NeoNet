@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:neo4j="http://www.springframework.org/schema/data/neo4j"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/data/neo4j http://www.springframework.org/schema/data/neo4j/spring-neo4j-2.0.xsd">
+
+    <context:spring-configured/>
+    <context:annotation-config/>
+
+    <!--If we're not bothered about the management console we can just use this -->
+    <!--<neo4j:config storeDirectory="target/neo4j-db"/>-->
+	<neo4j:repositories base-package="com.clarknoah.neo.repository"/>
+	
+	<bean id="peopleService" class="com.clarknoah.neo.service.PeopleService">
+	    </bean>
+    <!-- This additional config lets us use the Neo4j admin console -->     
+    <bean id="graphDatabaseService" class="org.neo4j.kernel.EmbeddedGraphDatabase">
+        <constructor-arg value="target/neo4j-db"/>
+    </bean>
+    <neo4j:config graphDatabaseService="graphDatabaseService"/>
+    <bean id="config" class="com.my.repository.Neo4jServerConfigurator">
+        <constructor-arg ref="graphDatabaseService"/>
+        <constructor-arg>
+            <map>
+                <entry key="enable_remote_shell" value="true"/>
+            </map>
+        </constructor-arg>
+    </bean>
+    <bean id="serverWrapper" class="org.neo4j.server.WrappingNeoServerBootstrapper" init-method="start"
+          destroy-method="stop">
+        <constructor-arg ref="graphDatabaseService"/>
+        <constructor-arg ref="config"/>
+    </bean>
+
+
+</beans>
